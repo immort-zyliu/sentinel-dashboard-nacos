@@ -30,6 +30,8 @@ public class DashboardApplication {
 
     public static void main(String[] args) {
         triggerSentinelInit();
+        // 关闭nacos日志
+        System.setProperty("nacos.logging.default.config.enabled", "false");
         SpringApplication.run(DashboardApplication.class, args);
     }
 
