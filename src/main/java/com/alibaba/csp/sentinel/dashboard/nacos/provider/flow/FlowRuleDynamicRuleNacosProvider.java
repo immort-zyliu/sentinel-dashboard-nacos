@@ -2,13 +2,11 @@ package com.alibaba.csp.sentinel.dashboard.nacos.provider.flow;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.nacos.config.NacosConfigCenter;
-import com.alibaba.csp.sentinel.dashboard.nacos.config.NacosConfigManager;
 import com.alibaba.csp.sentinel.dashboard.nacos.provider.AbstractDynamicRuleNacosProvider;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.fastjson.JSON;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,12 +18,6 @@ import java.util.stream.Collectors;
  */
 @Component
 public class FlowRuleDynamicRuleNacosProvider extends AbstractDynamicRuleNacosProvider<List<FlowRuleEntity>> {
-
-
-    @Override
-    public List<FlowRuleEntity> getRules(String appName) throws Exception {
-        return null;
-    }
 
     /**
      * @param app app name

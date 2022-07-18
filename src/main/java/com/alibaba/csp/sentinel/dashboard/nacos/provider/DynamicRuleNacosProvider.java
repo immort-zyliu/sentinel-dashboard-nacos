@@ -9,8 +9,6 @@ package com.alibaba.csp.sentinel.dashboard.nacos.provider;
 public interface DynamicRuleNacosProvider<T> {
 
 
-    T getRules(String appName) throws Exception;
-
     /**
      * @param app app name
      * @throws Exception if some error occurs
