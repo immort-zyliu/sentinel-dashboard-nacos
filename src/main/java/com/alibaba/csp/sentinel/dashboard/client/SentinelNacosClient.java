@@ -1,8 +1,11 @@
 package com.alibaba.csp.sentinel.dashboard.client;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.nacos.provider.paramflow.ParamFlowRuleDynamicRuleNacosProvider;
+import com.alibaba.csp.sentinel.dashboard.nacos.provider.system.SystemRuleDynamicRuleNacosProvider;
 import com.alibaba.csp.sentinel.dashboard.nacos.publisher.paramflow.ParamFlowDynamicRuleNacosPublisher;
+import com.alibaba.csp.sentinel.dashboard.nacos.publisher.system.SystemDynamicRuleNacosPublisher;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
 import com.alibaba.csp.sentinel.dashboard.util.AsyncTaskUtils;
 import com.alibaba.csp.sentinel.dashboard.util.AsyncUtils;
@@ -32,6 +35,15 @@ public class SentinelNacosClient {
 
     @Resource
     private RuleRepository<ParamFlowRuleEntity, Long> paramFlowRepository;
+
+    @Resource
+    private SystemDynamicRuleNacosPublisher systemDynamicRuleNacosPublisher;
+
+    @Resource
+    private SystemRuleDynamicRuleNacosProvider systemRuleDynamicRuleNacosProvider;
+
+    @Resource
+    private RuleRepository<SystemRuleEntity, Long> systemRuleRepository;
 
     /**
      * Fetch all parameter flow rules from provided nacos.
@@ -63,7 +75,6 @@ public class SentinelNacosClient {
     }
 
     /**
-     *
      * @param app  application name
      * @param ip   machine client IP
      * @param port machine client port
@@ -81,5 +92,25 @@ public class SentinelNacosClient {
         });
     }
 
+
+    public List<SystemRuleEntity> fetchSystemRuleOfNacos(String app, String ip, int port) {
+        // List<SystemRule> rules = fetchRules(ip, port, SYSTEM_RULE_TYPE, SystemRule.class);
+        try {
+            return systemRuleDynamicRuleNacosProvider.getRules(app, ip, port);
+        } catch (Exception e) {
+            // e.printStackTrace();
+            logger.error("publish param system rules error", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param app 应用名称
+     */
+    public void publishSystemFlowRules(String app) throws Exception {
+        List<SystemRuleEntity> rules = systemRuleRepository.findAllByApp(app);
+        this.systemDynamicRuleNacosPublisher.publish(app, rules);
+    }
 
 }

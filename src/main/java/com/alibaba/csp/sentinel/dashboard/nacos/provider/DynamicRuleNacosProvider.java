@@ -10,7 +10,9 @@ public interface DynamicRuleNacosProvider<T> {
 
 
     /**
-     * @param app app name
+     * @param app  app name
+     * @param ip   machine client IP
+     * @param port machine client port
      * @throws Exception if some error occurs
      */
     T getRules(String app, String ip, Integer port) throws Exception;
