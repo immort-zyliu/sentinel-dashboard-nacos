@@ -15,6 +15,7 @@ app.service('SystemService', ['$http', function ($http) {
   };
 
   this.newRule = function (rule) {
+    console.log(rule, "..............")
     var param = {
       app: rule.app,
       ip: rule.ip,
@@ -42,6 +43,9 @@ app.service('SystemService', ['$http', function ($http) {
   this.saveRule = function (rule) {
     var param = {
       id: rule.id,
+      app: rule.app,
+      ip: rule.ip,
+      port: rule.port
     };
     if (rule.grade == 0) {// avgLoad
       param.highestSystemLoad = rule.highestSystemLoad;
