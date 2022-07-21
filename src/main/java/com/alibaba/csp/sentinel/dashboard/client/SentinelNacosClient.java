@@ -1,9 +1,12 @@
 package com.alibaba.csp.sentinel.dashboard.client;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.AuthorityRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.nacos.provider.authority.AuthorityRuleDynamicRuleNacosProvider;
 import com.alibaba.csp.sentinel.dashboard.nacos.provider.paramflow.ParamFlowRuleDynamicRuleNacosProvider;
 import com.alibaba.csp.sentinel.dashboard.nacos.provider.system.SystemRuleDynamicRuleNacosProvider;
+import com.alibaba.csp.sentinel.dashboard.nacos.publisher.authority.AuthorityDynamicRuleNacosPublisher;
 import com.alibaba.csp.sentinel.dashboard.nacos.publisher.paramflow.ParamFlowDynamicRuleNacosPublisher;
 import com.alibaba.csp.sentinel.dashboard.nacos.publisher.system.SystemDynamicRuleNacosPublisher;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
@@ -44,6 +47,16 @@ public class SentinelNacosClient {
 
     @Resource
     private RuleRepository<SystemRuleEntity, Long> systemRuleRepository;
+
+    @Resource
+    private AuthorityRuleDynamicRuleNacosProvider authorityRuleDynamicRuleNacosProvider;
+
+    @Resource
+    private AuthorityDynamicRuleNacosPublisher authorityDynamicRuleNacosPublisher;
+
+    @Resource
+    private RuleRepository<AuthorityRuleEntity, Long> authorityRuleRepository;
+
 
     /**
      * Fetch all parameter flow rules from provided nacos.
@@ -113,4 +126,17 @@ public class SentinelNacosClient {
         this.systemDynamicRuleNacosPublisher.publish(app, rules);
     }
 
+    public List<AuthorityRuleEntity> fetchAuthorityRulesOfNacos(String app, String ip, Integer port) {
+        try {
+            return authorityRuleDynamicRuleNacosProvider.getRules(app, ip, port);
+        } catch (Exception e) {
+            logger.error("publish param auth rules error", e);
+        }
+        return null;
+    }
+
+    public void publishAuthorityRules(/*@NonNull*/ String app) throws Exception {
+        List<AuthorityRuleEntity> rules = authorityRuleRepository.findAllByApp(app);
+        this.authorityDynamicRuleNacosPublisher.publish(app, rules);
+    }
 }

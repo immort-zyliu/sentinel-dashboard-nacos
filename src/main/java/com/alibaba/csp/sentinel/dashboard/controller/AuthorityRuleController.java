@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
+import com.alibaba.csp.sentinel.dashboard.client.SentinelNacosClient;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
@@ -57,6 +58,9 @@ public class AuthorityRuleController {
     @Autowired
     private RuleRepository<AuthorityRuleEntity, Long> repository;
 
+    @Autowired
+    private SentinelNacosClient sentinelNacosClient;
+
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<AuthorityRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
@@ -72,7 +76,8 @@ public class AuthorityRuleController {
             return Result.ofFail(-1, "Invalid parameter: port");
         }
         try {
-            List<AuthorityRuleEntity> rules = sentinelApiClient.fetchAuthorityRulesOfMachine(app, ip, port);
+            // List<AuthorityRuleEntity> rules = sentinelApiClient.fetchAuthorityRulesOfMachine(app, ip, port);
+            List<AuthorityRuleEntity> rules = sentinelNacosClient.fetchAuthorityRulesOfNacos(app, ip, port);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -123,13 +128,14 @@ public class AuthorityRuleController {
         entity.setGmtModified(date);
         try {
             entity = repository.save(entity);
+            this.sentinelNacosClient.publishAuthorityRules(entity.getApp());
         } catch (Throwable throwable) {
             logger.error("Failed to add authority rule", throwable);
             return Result.ofThrowable(-1, throwable);
         }
-        if (!publishRules(entity.getApp(), entity.getIp(), entity.getPort())) {
+        /*if (!publishRules(entity.getApp(), entity.getIp(), entity.getPort())) {
             logger.info("Publish authority rules failed after rule add");
-        }
+        }*/
         return Result.ofSuccess(entity);
     }
 
@@ -150,16 +156,18 @@ public class AuthorityRuleController {
         entity.setGmtModified(date);
         try {
             entity = repository.save(entity);
+
             if (entity == null) {
                 return Result.ofFail(-1, "Failed to save authority rule");
             }
+            this.sentinelNacosClient.publishAuthorityRules(entity.getApp());
         } catch (Throwable throwable) {
             logger.error("Failed to save authority rule", throwable);
             return Result.ofThrowable(-1, throwable);
         }
-        if (!publishRules(entity.getApp(), entity.getIp(), entity.getPort())) {
+        /*if (!publishRules(entity.getApp(), entity.getIp(), entity.getPort())) {
             logger.info("Publish authority rules failed after rule update");
-        }
+        }*/
         return Result.ofSuccess(entity);
     }
 
@@ -175,12 +183,13 @@ public class AuthorityRuleController {
         }
         try {
             repository.delete(id);
+            this.sentinelNacosClient.publishAuthorityRules(oldEntity.getApp());
         } catch (Exception e) {
             return Result.ofFail(-1, e.getMessage());
         }
-        if (!publishRules(oldEntity.getApp(), oldEntity.getIp(), oldEntity.getPort())) {
+        /*if (!publishRules(oldEntity.getApp(), oldEntity.getIp(), oldEntity.getPort())) {
             logger.error("Publish authority rules failed after rule delete");
-        }
+        }*/
         return Result.ofSuccess(id);
     }
 
